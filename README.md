@@ -1,17 +1,13 @@
 <h1>Hi, I'm Rashid! <br/><a href=https://github.com/rashid-skr>Programmer</a>, <https://www.linkedin.com/in/abdur-rashid-395114135//in/Abdur Rashid/"> Java Developer </a>,
 
 <h2>👨‍💻 Software Development Projects:</h2>
-
-<b>Training at Skill Development for mobile Game
-and Application</b>
 <b>Create a Banking Application Project using Java<b>
 - School management system project using java
 - E-commerce project Based on C programming
 - <b>Data Structures and Algorithms Practice</b>
-  - [Praciting Java & OOP]
-- <b>Full Stack Web App (HTML,CSS,PHP)</b>
+  - [Java & OOP]
 - <b> C ( C++ )</b>
-- [Methods-of-resource-scheduling-optimizing-based-on-Fog-computing]([https://github.com/rashid-skr)
+- [https://github.com/rashid-skr/BankApplication]
 -[https://github.com/rashid-skr/Methods-of-resource-scheduling-optimizing-based-on-Fog-computing]
 - <b>Python</b>
   - [Package Delivery Application (Datastructures and Algorithms Demo)]
