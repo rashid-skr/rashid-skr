@@ -11,6 +11,7 @@ and Application</b>
   - [Praciting Java & OOP]
 - <b>Full Stack Web App (HTML,CSS,PHP)</b>
 - <b> C ( C++ )</b>
+- [Methods-of-resource-scheduling-optimizing-based-on-Fog-computing]([https://github.com/rashid-skr)
 -[https://github.com/rashid-skr/Methods-of-resource-scheduling-optimizing-based-on-Fog-computing]
 - <b>Python</b>
   - [Package Delivery Application (Datastructures and Algorithms Demo)]
