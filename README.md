@@ -1,6 +1,8 @@
 <h1>Hi, I'm Rashid! <br/><a href=https://github.com/rashid-skr>Programmer</a>, <https://www.linkedin.com/in/abdur-rashid-395114135//in/Abdur Rashid/"> Java Developer </a>,
 
 <h2>👨‍💻 Software Development Projects:</h2>
+ - <b>Data Structures and Algorithms Practice (AlgoExpert)</b>
+  - [Praciting DS & Algos in Python](https://github.com/joshmadakor1/Algorithms-Practice)
 -<b>JavaProgramming Practice</b>
  - [https://github.com/rashid-skr/BankApplication]
  -<b>C/C++ Programming Practice</b>
