@@ -6,6 +6,6 @@
  <br>C/C++ Programming Practice</br>
 [https://github.com/rashid-skr/Methods-of-resource-scheduling-optimizing-based-on-Fog-computing]
 <br>Networking</br>
-[linkedin]:https://www.linkedin.com/in/abdur-rashid-395114135]
+[linkedin]:https://www.linkedin.com/in/rashidskr/]
 
 
