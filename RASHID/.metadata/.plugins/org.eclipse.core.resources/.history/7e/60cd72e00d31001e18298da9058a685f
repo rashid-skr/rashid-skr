@@ -1,0 +1,59 @@
+SUBROUTINE JBL.TEST.FT.RTN
+    $INSERT I_COMMON
+    $INSERT I_EQUATE
+    
+    $USING EB.DataAccess
+    $USING EB.SystemTables
+    $USING FT.Contract
+    $USING EB.Foundation
+    $USING EB.Interface
+    
+    
+    GOSUB INIT
+    GOSUB OPENFILES
+    GOSUB PROCESS
+RETURN
+
+****
+INIT:
+***
+    FN.FT='F.FUNDS.TRANSFER'
+    F.FT=''
+RETURN
+***
+OPENFILES:
+***
+    EB.DataAccess.Opf(FN.FT,F.FT)
+RETURN
+***
+PROCESS:
+    
+******
+    R.REC<FT.Contract.FundsTransfer.TransactionType> = 'AC'
+    R.REC<FT.Contract.FundsTransfer.DebitAcctNo> = '100099'
+    R.REC<FT.Contract.FundsTransfer.DebitCurrency> ='USD'
+    R.REC<FT.Contract.FundsTransfer.DebitAmount> = '250'
+    R.REC<FT.Contract.FundsTransfer.CreditAcctNo> = '100013'
+    
+    OFS.SOURCE = 'GCS'
+    EB.Foundation.OfsBuildRecord('FUNDS.TRANSFER','I','PROCESS','FUNDS.TRANSFER,JBL.TEST.FT.RTNN','',0,'',R.REC,YOfsRecord)
+    theResponse = ""
+    txnCommitted = ""
+    EB.Interface.OfsCallBulkManager(OFS.SOURCE, YOfsRecord, theResponse, txnCommitted)
+    SENSITIVITY = ''
+    DEBUG
+    writeData = YOfsRecord:'*':theResponse:'*':txnCommitted
+    FileName='AuthTest.txt'
+    FilePath= 'D:\NMBT\Temenos\t24home\default\DD.IN'
+ 
+    OPENSEQ FilePath,FileName TO FileOutput THEN NULL
+    ELSE
+        CREATE FileOutput ELSE
+        END
+    END
+    WRITESEQ writeData APPEND TO FileOutput ELSE
+        CLOSESEQ FileOutput
+    END
+    
+RETURN
+   

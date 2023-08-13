@@ -1,0 +1,131 @@
+SUBROUTINE JBL.TAX.CALCULATION.RTN
+*-----------------------------------------------------------------------------
+*
+*-----------------------------------------------------------------------------
+* Modification History :
+*-----------------------------------------------------------------------------
+
+*-----------------------------------------------------------------------------
+    $INSERT I_COMMON
+    $INSERT I_EQUATE
+    
+    $USING EB.LocalReferences
+    $USING EB.API
+    $USING AA.Customer
+    $USING EB.DataAccess
+    $USING AA.Framework
+    $USING EB.SystemTables
+    
+    
+    GOSUB INIT
+    GOSUB OPENFILES
+    GOSUB PROCESS
+RETURN
+
+******
+INIT:
+******
+    FN.CUS= 'F.AA.ARR.CUSTOMER'
+    F.CUS = ''
+    REC.CUS = ''
+
+    FN.SS= 'F.STANDARD.SELECTION'
+    F.SS = ''
+    R.SS = ''
+    SYSTEM.DATE=EB.SystemTables.getToday()
+    Y.MAX.AMT.ORIG=""
+    Y.MAX.AMT.TEMP=""
+    Y.TIN.AMOUNT=100000
+    Y.ETIN = ''
+RETURN
+      
+**********
+OPENFILES:
+**********
+    EB.DataAccess.Opf(FN.CUS,F.CUS)
+    EB.DataAccess.Opf(FN.SS,F.SS)
+RETURN
+
+*********
+PROCESS:
+*********
+    APPLICATION.NAME = 'AA.ARR.CUSTOMER'
+    Y.TIN.GIVEN='TIN.NO'
+    Y.TIN.GIVEN.POS=''
+    EB.LocalReferences.GetLocRef(APPLICATION.NAME,Y.TIN.GIVEN,Y.TIN.GIVEN.POS)
+    
+    
+    APP.NAME = 'AA.ARR.CUSTOMER'
+    EB.API.GetStandardSelectionDets(APP.NAME, R.SS)
+
+    Y.FIELD.NAME = 'LOCAL.REF'
+    LOCATE Y.FIELD.NAME IN R.SS<AA.Customer.Customer.CusLocalRef> SETTING Y.POS THEN
+    END
+    CALL AA.GET.CUSTOMER.RECORD(R.PROPERTY.RECORD, PROPERTY.ID)
+    TMP.DATA = R.PROPERTY.RECORD<1,Y.POS>
+    Y.TIN.VAL=FIELD(TMP.DATA,SM,Y.TIN.GIVEN.POS)
+    Y.TIN.LEN = LEN(Y.TIN.VAL)
+    Y.TIN.NUM = NUM(Y.TIN.VAL)
+
+    IF (Y.TIN.LEN EQ 12) AND Y.TIN.NUM THEN
+        Y.ETIN = 'Y'
+    END
+    Y.START.DATE=PASS.DATA<79>[1,8]
+    Y.START.PERIOD=PASS.DATA<79>[1,6]
+    Y.END.DATE=SYSTEM.DATE
+    Y.END.PERIOD=SYSTEM.DATE[1,6]
+    
+    ArrangementId = PASS.CUSTOMER<5>
+    
+    AA.Framework.GetArrangementAccountId(ArrangementId, AccountId, Currency, ReturnError)
+    AA.Framework.GetArrAccountProductLine(AccountId, ProductLine, ReturnError)
+    Y.PRODUCT.LINE = ProductLine
+    BaseBalance = 'CURACCOUNT'
+    RequestType<2> = 'ALL'  ;* Unauthorised Movements required.
+    RequestType<3> = 'ALL'  ;* Projected Movements requierd
+    RequestType<4> = 'ECB'  ;* Balance file to be used
+    RequestType<4,2> = 'END'    ;* Balance required as on TODAY - though Activity date can be less than today
+***********************************************************
+    IF Y.ETIN EQ 'Y' THEN
+        TAX.AMOUNT=(PASS.DEAL.AMOUNT*10)/100
+    END
+    ELSE
+        LOOP
+        UNTIL Y.START.PERIOD GT Y.END.PERIOD DO
+            AA.Framework.GetPeriodBalances(AccountId, BaseBalance, RequestType, Y.START.DATE, Y.END.DATE, SystemDate, BalDetails, ErrorMessage)
+            Y.MAX.AMT.TEMP  =   MAXIMUM(BalDetails<4>)
+    
+            IF Y.MAX.AMT.TEMP GT Y.MAX.AMT.ORIG THEN
+                Y.MAX.AMT.ORIG = Y.MAX.AMT.TEMP
+            END
+            Y.MAX.AMT.TEMP=''
+            IF Y.START.PERIOD[5,2] EQ 12 THEN
+                Y.START.PERIOD = Y.START.PERIOD[1,4]+1:"01"
+                Y.START.DATE = Y.START.PERIOD[1,4]+1:"0101"
+            END
+            ELSE
+                Y.START.PERIOD = Y.START.PERIOD[1,4]:FMT(Y.START.PERIOD[5,2]+1,"R%2")
+                Y.START.DATE = Y.START.PERIOD[1,4]:FMT(Y.START.PERIOD[5,2]+1,"R%2"):FMT(Y.START.DATE[7,2],"R%2")
+            END
+
+        REPEAT
+
+        BEGIN CASE
+            CASE Y.ETIN EQ '' AND ( Y.MAX.AMT.ORIG GT Y.TIN.AMOUNT )
+                TAX.AMOUNT=(PASS.DEAL.AMOUNT*15)/100
+            CASE Y.ETIN EQ '' AND ( Y.MAX.AMT.ORIG LE Y.TIN.AMOUNT )
+                TAX.AMOUNT=(PASS.DEAL.AMOUNT*10)/100
+        END CASE
+    END
+    writeData = ArrangementId:'*':TAX.AMOUNT :'*':AccountId:'*':PASS.DEAL.AMOUNT:'*':PASS.DATA
+    FileName = 'TAX.txt'
+    FilePath = 'E:/Temenos/t24home/default/MBDD.BP'
+    OPENSEQ FilePath,FileName TO FileOutput THEN NULL
+    ELSE
+        CREATE FileOutput ELSE
+        END
+    END
+    WRITESEQ writeData APPEND TO FileOutput ELSE
+        CLOSESEQ FileOutput
+    END
+RETURN

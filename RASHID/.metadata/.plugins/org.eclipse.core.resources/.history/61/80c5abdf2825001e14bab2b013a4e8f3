@@ -1,0 +1,52 @@
+SUBROUTINE ACCOUNT.AUTH.RTN
+    $INSERT I_COMMON
+    $INSERT I_EQUATE
+
+    $USING EB.SystemTables
+    $USING EB.Foundation
+    $USING EB.DataAccess
+    $USING AC.AccountOpening
+    $USING ST.Customer
+
+    GOSUB INIT
+    GOSUB OPF
+    GOSUB PROCESS
+RETURN
+
+INIT:
+    FN.CUS = 'F.CUSTOMER'   ;  F.CUS = ''
+    FN.ACC = 'F.ACCOUNT'    ;  F.ACC = ''
+*Y.LT   = 'LT.ACC.CNT':VM:'LT.AGDGD'
+*Y.APP = :'FT':FM:'CUSTOMER'
+*EB.Foundation.MapLocalFields(Y.APP, Y.LT, FLD.POS)
+*LT.ACC.CNT.POS = FLD.POS<2,1>
+
+    EB.Foundation.MapLocalFields('CUSTOMER', 'LT.ACCOUNT.CNT', FLD.POS)
+    LT.ACCOUNT.CNT.POS = FLD.POS<1,1>
+RETURN
+
+OPF:
+    EB.DataAccess.Opf(FN.CUS, F.CUS)
+RETURN
+
+PROCESS:
+    Y.APP.NM = EB.SystemTables.getApplication()
+    Y.FUNC   =  EB.SystemTables.getVFunction()
+    
+    IF Y.APP.NM EQ 'ACCOUNT' AND Y.FUNC EQ 'A' THEN
+        Y.CUS.ID = EB.SystemTables.getRNew(AC.AccountOpening.Account.Customer)
+        
+        EB.DataAccess.FRead(FN.CUS, Y.CUS.ID, REC.CUS, F.CUS, ERR)
+        Y.TOT.ACC = REC.CUS<ST.Customer.Customer.EbCusLocalRef, LT.ACCOUNT.CNT.POS>
+        
+        IF Y.TOT.ACC EQ '' THEN
+            Y.TOT.ACC = 0
+        END
+        
+        REC.CUS<ST.Customer.Customer.EbCusLocalRef, LT.ACCOUNT.CNT.POS> =+ 1
+        
+        WRITE REC.CUS ON F.CUS, Y.CUS.ID
+    END
+RETURN
+END
+

@@ -1,0 +1,85 @@
+SUBROUTINE JBL.TRAIN.A.PENINT.UPDATE.RTN
+*-----------------------------------------------------------------------------
+*
+*-----------------------------------------------------------------------------
+* Modification History :
+*-----------------------------------------------------------------------------
+
+*-----------------------------------------------------------------------------
+    $INSERT I_COMMON
+    $INSERT I_EQUATE
+    $INSERT I_AA.LOCAL.COMMON
+
+    $USING EB.SystemTables
+    $USING AA.Framework
+    $USING AA.Interest
+    $USING EB.Foundation
+    $USING EB.DataAccess
+    $USING EB.Interface
+    $USING AC.AccountOpening
+     
+    
+    ACTIVITY.STATUS = c_aalocArrActivityRec<AA.Framework.ArrangementActivity.ArrActRecordStatus>
+    IF ACTIVITY.STATUS EQ "AUTH" OR ACTIVITY.STATUS EQ "" THEN
+        GOSUB INIT
+        GOSUB LOCALTABLEUPATE
+        GOSUB PROCESS
+    END
+RETURN
+
+INIT:
+    FN.AC = 'F.ACCOUNT'
+    F.AC = ''
+    APPLICATION.NAME = 'ACCOUNT'
+    LOCAL.FIELDS = 'LT.ASSET.CLASS'
+    EB.Foundation.MapLocalFields(APPLICATION.NAME, LOCAL.FIELDS, FLD.POS)
+    Y.ASSET.CLASS.POS = FLD.POS<1,1>
+    Y.ACCOUNT.ID = c_aalocLinkedAccount
+    
+    EB.DataAccess.Opf(FN.AC,F.AC)
+RETURN
+
+LOCALTABLEUPATE:
+    EB.DataAccess.FRead(FN.AC, Y.ACCOUNT.ID, R.AC, F.AC, E.AC)
+    R.AC<AC.AccountOpening.Account.LocalRef,Y.ASSET.CLASS.POS> = '10'
+    WRITE R.AC TO F.AC,Y.ACCOUNT.ID
+    writeData = Y.ACCOUNT.ID:'*':R.AC:'*':E.AC:'*':Y.ASSET.CLASS.POS
+    FileName = 'POST.txt'
+    FilePath = 'E:/Temenos/t24home/default/MBDD.BP'
+    OPENSEQ FilePath,FileName TO FileOutput THEN NULL
+    ELSE
+        CREATE FileOutput ELSE
+        END
+    END
+    WRITESEQ writeData APPEND TO FileOutput ELSE
+        CLOSESEQ FileOutput
+    END
+RETURN
+
+
+PROCESS:
+    ArrangementId = c_aalocArrActivityRec<AA.Framework.ArrangementActivity.ArrActArrangement>
+    ACTIVITY.RECORD = AA.Framework.getC_aalocarractivityrec()
+    ARR.ACTIVITY = ACTIVITY.RECORD<AA.Framework.ArrangementActivity.ArrActActivity>
+    IF ARR.ACTIVITY EQ 'LENDING-CHANGE-PRINCIPALINT' THEN
+       
+        PROP.CLASS.TRM = 'INTEREST'
+        OFS.SOURCE = 'GCS'
+        AA.Framework.GetArrangementConditions(ArrangementId,PROP.CLASS.TRM,'PRINCIPALINT','',RETURN.IDS.TRM,RETURN.VALUES.TRM,ERR.MSG.TRM)
+        RETURN.VALUES.TRM = RAISE(RETURN.VALUES.TRM)
+        Y.PR.INT.RT = EB.SystemTables.getRNew(AA.Interest.Interest.IntFixedRate)
+        
+        R.REC<AA.Framework.ArrangementActivity.ArrActArrangement> = AA.Framework.getC_aalocarrid()
+        R.REC<AA.Framework.ArrangementActivity.ArrActActivity> = 'LENDING-CHANGE-PENALTYINT'
+        R.REC<AA.Framework.ArrangementActivity.ArrActEffectiveDate> = c_aalocActivityEffDate
+        R.REC<AA.Framework.ArrangementActivity.ArrActProperty> = 'PENALTYINT'
+        R.REC<AA.Framework.ArrangementActivity.ArrActFieldName> = FIXED.RATE + 2
+        R.REC<AA.Framework.ArrangementActivity.ArrActFieldValue> = Y.PR.INT.RT
+        Y.PR.INT.RT = FIXED.RATE + 2
+        
+        EB.Foundation.OfsBuildRecord('AA.ARRANGEMENT.ACTIVITY', 'I', 'PROCESS', 'AA.ARRANGEMENT.ACTIVITY,MIG', "" ,"0" ,"", R.REC, Y.OFS.RECORD)
+       
+        EB.Interface.OfsCallBulkManager(OFS.SOURCE, Y.OFS.RECORD,OFS.RESPONSE, TXN.COMMITTED)
+    END
+
+RETURN

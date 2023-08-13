@@ -1,0 +1,33 @@
+SUBROUTINE ACC.AUTH.RTN
+    $INSERT I_COMMON
+    $USING I_EQUATE
+    $USING EB.SystemTables
+    $USING EB.DataAccess
+    $USING EB.Foundation
+    $USING ST.Customer
+    $USING AC.AccountOpening
+
+    GOSUB INIT
+    GOSUB OPF
+    GOSUB PROCESS
+RETURN
+INIT :
+FN.CUS='F.CUSTOMER'
+F.CUS=''
+FN.ACC='F.ACCOUNT'
+F.ACC=''
+Y.LT=''LT.ACC.CNT'
+EB.Foundation.MapLocalFields('CUSTOMER',LT.ACC.CNT,FLD.POS)
+LT.ACC.CNT=FLD.POS<1,1>
+RETURN
+OPF :
+EB.DataAccess.Opf(FN.CUS,F.CUS)
+PROCESS :
+Y.APP.NM=EB.SystemTables.getApplication()
+Y.FUNN =EB.SystemTables.getVFunction()
+IF Y.APP EQ 'ACCOUNT' AND Y.FUN EQ 'A' THEN
+    
+ 
+ 
+
+END

@@ -1,0 +1,75 @@
+SUBROUTINE DATE.BALAN.TEST(arrId,arrProp,arrCcy,arrRes,balanceAmount,perDat)
+
+    $INSERT I_COMMON
+    $INSERT I_EQUATE
+    $INSERT I_AA.LOCAL.COMMON
+    $INSERT I_F.AA.ARRANGEMENT
+    $INSERT I_F.FT.COMMISSION.TYPE
+    $INSERT I_GTS.COMMON
+    
+    $USING EB.SystemTables
+    $USING EB.DataAccess
+    $USING AA.Framework
+    $USING AA.TermAmount
+    $USING AC.AccountOpening
+    $USING EB.TransactionControl
+* $USING AC.CashFlow
+    $USING ST.ChargeConfig
+    $USING AA.PaymentSchedule
+    $USING AA.ActivityRestriction
+    $USING ST.CurrencyConfig
+    $USING AC.BalanceUpdates
+    $USING AA.Account
+    $USING EB.LocalReferences
+    
+*****************************************************
+    IF EB.SystemTables.getVFunction() EQ 'I' THEN RETURN
+    IF EB.SystemTables.getVFunction() EQ 'V' THEN RETURN
+    IF EB.SystemTables.getVFunction() EQ 'A' THEN RETURN
+    IF (OFS$OPERATION EQ 'VALIDATE' OR OFS$OPERATION EQ 'PROCESS') AND c_aalocCurrActivity EQ 'LENDING-ISSUEBILL-SCHEDULE*DISBURSEMENT.%' THEN RETURN
+    
+    GOSUB INIT
+    GOSUB OPENFILES
+
+    IF c_aalocCurrActivity EQ 'ACCOUNTS-MAKEDUE-SCHEDULE' OR c_aalocCurrActivity EQ 'ACCOUNTS-CAPITALISE-SCHEDULE' OR c_aalocCurrActivity EQ 'LENDING-MAKEDUE-SCHEDULE' THEN
+        GOSUB PROCESS
+    END
+RETURN
+
+*****
+INIT:
+*****
+RETURN
+
+**********
+OPENFILES:
+**********
+RETURN
+********
+PROCESS:
+*******
+   
+    
+*Y.PRO.NAME = 'PRINCIPALINT':@VM:'PAYOFFFEE':@VM:'COMMITMENT':@VM:'ACCOUNT'
+*Y.COUNT = DCOUNT(Y.PRO.NAME,@VM)
+*  FOR I = 1 TO Y.COUNT
+    PROP.CLASS = 'ACCOUNT'
+    PROPERTY='Y.ACCOUNT.REFERENCE':@VM:'Y.CATEGORY':@VM: 'Y.ACCOUNT.TITLE.1'
+    AA.Framework.GetArrangementConditions(arrId,PROP.CLASS,PROPERTY,'',RETURN.IDS,RETURN.VALUES,ERR.MSG)
+    PROP.CLASS = 'INTEREST'
+    PROPERTY='Y.FLAT CHARGE'
+    AA.Framework.GetArrangementConditions(arrId,PROP.CLASS,PROPERTY,'',RETURN.IDS,RETURN.VALUES,ERR.MSG)
+    
+    PROP.CLASS.= 'CHARGE'
+    PROPERTY= 'Y.FIXED.AMOUNT'
+    AA.Framework.GetArrangementConditions(arrId,PROP.CLASS,PROPERTY,'',RETURN.IDS,RETURN.VALUES,ERR.MSG)
+    PROP.CLASS= 'TERM.AMOUNT'
+    PROPERTY= 'Y.AMOUNT':@VM:'Y.TERM' :@vm:'Y.MATURITY.DATE'
+*
+    AA.Framework.GetArrangementConditions(arrId, PROP.CLASS,'PROPERTY','',RETURN.IDS.TRM,RETURN.VALUES.TRM,ERR.MSG.TRM)
+    Y.COUNT = DCOUNT(PROPERTY,@VM)
+    FOR I = 1 TO Y.COUNT
+
+        writeData = arrId:'*':RETURN.VALUES.TRM
+        FileName = Y.PRO.NAME<1,I>:'.txt'
+    END

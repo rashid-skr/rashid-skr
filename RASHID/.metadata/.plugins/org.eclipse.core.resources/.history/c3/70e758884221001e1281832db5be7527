@@ -1,0 +1,16 @@
+SUBROUTINE CUS.CHECK.RCD.RTN
+    $INSERT I_COMMON
+    $INSERT I_EQUATE
+    
+    $USING EB.SystemTables
+    $USING ST.Customer
+
+
+
+    Y.OP =''
+    IF NOT (EB.SystemTables.getRNew(ST.Customer.Customer.EbCusInputter)) THEN RETURN
+    IF NOT (EB.SystemTables.getRNew(ST.Customer.Customer.EbCusRecordStatus)) THEN RETURN
+
+
+RETURN
+END

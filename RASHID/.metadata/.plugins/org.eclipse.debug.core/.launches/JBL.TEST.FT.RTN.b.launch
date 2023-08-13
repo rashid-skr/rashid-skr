@@ -1,0 +1,15 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<launchConfiguration type="com.temenos.tafj.launcher.BASICLauncherDelegate">
+<stringAttribute key="BASIC_CONTEXT" value=""/>
+<stringAttribute key="BASIC_PROGRAM" value="/TAFJ-TRAINING/TEST.CODE/JBL.TEST.FT.RTN.b"/>
+<stringAttribute key="BASIC_PROGRAM_ARGUMENTS" value=""/>
+<stringAttribute key="BASIC_PROJECT" value="TAFJ-TRAINING"/>
+<stringAttribute key="CLIENT_IP" value="localhost"/>
+<stringAttribute key="CLIENT_PORT" value="9993"/>
+<booleanAttribute key="DEBUG_ENABLED" value="false"/>
+<booleanAttribute key="ECLIPSE_ENABLED" value="false"/>
+<stringAttribute key="ECLIPSE_PORT" value="9994"/>
+<booleanAttribute key="REMOTE_CLIENT_ENABLED" value="false"/>
+<stringAttribute key="UNIQUE_TARGET" value="/TAFJ-TRAINING/TEST.CODE/JBL.TEST.FT.RTN.b"/>
+<stringAttribute key="VM_OPTIONS" value="-Xmx1024M"/>
+</launchConfiguration>

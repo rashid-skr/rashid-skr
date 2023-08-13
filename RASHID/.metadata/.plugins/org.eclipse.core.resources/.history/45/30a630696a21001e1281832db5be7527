@@ -1,0 +1,7 @@
+SUBROUTINE ENQ.CAT.CONV.RTN
+    $INSERT  I_COMMON
+    $INSERT  I_EQUATE
+    $USING EB.Reports
+    $USING ST.Config
+    $USING EB.DataAccess
+END

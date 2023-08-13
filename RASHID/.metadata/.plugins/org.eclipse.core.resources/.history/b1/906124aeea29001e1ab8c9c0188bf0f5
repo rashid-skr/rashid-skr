@@ -1,0 +1,16 @@
+SUBROUTINE JBL.TRAIN.REC.RTN
+    $INSERT I_COMMON
+    $INSERT I_EQUATE
+    $INSERT I_AA.LOCAL.COMMON
+
+    $USING AA.Framwork
+    $USING ST.Customer
+    $USING EB.DataAccess
+    $USING EB.SystemTables
+    FN.CUSTOMER =F.CUSTOMER
+    F.CUSTOMER =''
+    EB.DataAccess.Opf(FN.CUSTOMER,F.CUSTOMER)
+  
+
+
+END

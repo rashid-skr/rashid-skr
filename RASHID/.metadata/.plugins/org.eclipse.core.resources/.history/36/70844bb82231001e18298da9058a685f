@@ -1,0 +1,43 @@
+SUBROUTINE JBL.ACCOUNT.TEST.RTN
+*-----------------------------------------------------------------------------
+*
+*-----------------------------------------------------------------------------
+* Modification History :
+*-----------------------------------------------------------------------------
+
+*-----------------------------------------------------------------------------
+    $INSERT I_COMMON
+    $INSERT I_EQUATE
+    
+    $USING EB.DataAccess
+    $USING EB.SystemTables
+    $USING FT.Contract
+    $USING EB.Foundation
+    $USING EB.Interface
+    $USING AC.AccountOpening
+    GOSUB INIT
+    GOSUB OPF
+    GOSUB PROCESS
+RETURN
+INIT:
+    FN.ACC='F.ACCOUNT'
+    F.ACC=''
+    R.REC=''
+RETURN
+PROCESS:
+    R.REC<AC.AccountOpening.Account.Customer>='100301'
+    R.REC<AC.AccountOpening.Account.Category>='1001'
+    R.REC<AC.AccountOpening.Account.Currency>='USD'
+    FS.SOURCE = 'GCS'
+    EB.Foundation.OfsBuildRecord('ACCOUNT','I','PROCESS','ACCOUNT,ACCON.TEST','',0,'',R.REC,YOfsRecord)
+    theResponse = ""
+    txnCommitted = ""
+    EB.Interface.OfsCallBulkManager(OFS.SOURCE, YOfsRecord, theResponse, txnCommitted)
+    SENSITIVITY = ''
+    DEBUG
+RETURN
+END
+    
+    
+    
+  

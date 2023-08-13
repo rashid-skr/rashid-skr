@@ -1,0 +1,42 @@
+SUBROUTINE JBL.CRE.CUS.OPS.RTN
+    $INSERT I_COMMON
+    $INSERT I_EQUATE
+    $USING EB.SystemTables
+
+    $USING EB.DataAccess
+    $USING ST.Customer
+    $USING EB.Foundation
+    $USING EB.Interface
+    
+    GOSUB INIT
+    GOSUB OPENFILES
+    GOSUB  PROCESS
+RETURN
+
+INIT:
+    FN.CUS='F.CUSTOMER'
+    F.CUS=''
+    R.REC=''
+RETURN
+OPENFILES:
+    EB.DataAccess.Opf(FN.CUS,F.CUS)
+RETURN
+PROCESS:
+    R.REC<ST.Customer.Customer.EbCusMnemonic>='RASHID'
+    R.REC<ST.Customer.Customer.EbCusShortName>='RAj'
+    R.REC<ST.Customer.Customer.EbCusNameOne>='RAju'
+    R.REC<ST.Customer.Customer.EbCusSector>='1001'
+    R.REC<ST.Customer.Customer.EbCusLanguage>='1'
+    R.REC<ST.Customer.Customer.EbCusGender>='MALE'
+    R.REC<ST.Customer.Customer.EbCusPhoneOne>='01743288736':@VM:'01518402271'
+    R.REC<ST.Customer.Customer.EbCusEmailOne>='rashid.ice.iu@gmail.com'
+    R.REC<ST.Customer.Customer.EbCusMaritalStatus>='SINGLE'
+    OFS.SOURCE = 'GCS'
+    EB.Foundation.OfsBuildRecord('CUSTOMER','I','PROCESS','CUSTOMER,CUS.TEST.RTN','',0,'',R.REC,YOfsRecord)
+    theResponse = ""
+    txnCommitted = ""
+    EB.Interface.OfsCallBulkManager(OFS.SOURCE, YOfsRecord,theResponse, txnCommitted)
+    SENSITIVITY = ''
+    DEBUG
+RETURN
+END

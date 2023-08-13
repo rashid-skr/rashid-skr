@@ -1,0 +1,117 @@
+SUBROUTINE JBL.TEST.CODE.FID.RTN(arrId,arrProp,arrCcy,arrRes,balanceAmount,perDat)
+    $INSERT I_COMMON
+    $INSERT I_EQUATE
+* $INSERT I_AA.LOCAL.COMMON
+    $INSERT I_F.AA.ARRANGEMENT
+    $INSERT I_F.FT.COMMISSION.TYPE
+    $INSERT I_GTS.COMMON
+    
+    $USING EB.SystemTables
+    $USING EB.DataAccess
+    $USING AA.Framework
+    $USING AA.TermAmount
+    $USING AC.AccountOpening
+    $USING EB.TransactionControl
+* $USING AC.CashFlow
+    $USING AA.Fees
+    $USING AA.PaymentSchedule
+    $USING AA.ActivityRestriction
+* $USING ST.CurrencyConfig
+    $USING AC.BalanceUpdates
+    $USING AA.Account
+*$USING EB.LocalReferences
+    $USING AA.Interest
+    
+*****************************************************
+* IF EB.SystemTables.getVFunction() EQ 'I' THEN RETURN
+* IF EB.SystemTables.getVFunction() EQ 'V' THEN RETURN
+* IF EB.SystemTables.getVFunction() EQ 'A' THEN RETURN
+* IF (OFS$OPERATION EQ 'VALIDATE' OR OFS$OPERATION EQ 'PROCESS') AND c_aalocCurrActivity EQ 'LENDING-ISSUEBILL-SCHEDULE*DISBURSEMENT.%' THEN RETURN
+    
+    GOSUB INIT
+    GOSUB OPENFILES
+
+* IF c_aalocCurrActivity EQ 'ACCOUNTS-MAKEDUE-SCHEDULE' OR c_aalocCurrActivity EQ 'ACCOUNTS-CAPITALISE-SCHEDULE' OR c_aalocCurrActivity EQ 'LENDING-MAKEDUE-SCHEDULE' THEN
+    GOSUB PROCESS
+*END
+*RETURN
+
+*****
+INIT:
+*****
+RETURN
+
+**********
+OPENFILES:
+**********
+RETURN
+
+********
+PROCESS:
+********
+    AA.Framework.GetArrangementConditions(arrId,"",'ACCOUNT','',RETURN.IDS.TRM,RETURN.VALUES.TRM,ERR.MSG.TRM)
+    RETURN.VALUES.TRM = RAISE(RETURN.VALUES.TRM)
+    Y.FILD.VAL = RETURN.VALUES.TRM<AA.Account.Account.AcAccountReference>
+    Y.CAt=RETURN.VALUES.TRM<AA.Account.Account.AcCategory>
+    Y.ACCNT.NM=RETURN.VALUES.TRM<AA.Account.Account.AcAccountTitleOne>
+    
+    writeData = arrId:'*':Y.FILD.VAL:'*':Y.CAt:'*':Y.ACCNT.NM
+    FileName = 'ACCOUNT.txt'
+    FilePath= 'D:\NMBT\Temenos\t24home\default\DD.IN'
+    OPENSEQ FilePath,FileName TO FileOutput THEN NULL
+    ELSE
+        CREATE FileOutput ELSE
+        END
+    END
+    WRITESEQ writeData APPEND TO FileOutput ELSE
+        CLOSESEQ FileOutput
+    END
+    
+    AA.Framework.GetArrangementConditions(arrId,"",'PRINCIPALINT','',RETURN.IDS.TRM,RETURN.VALUES.TRM,ERR.MSG.TRM)
+    RETURN.VALUES.TRM = RAISE(RETURN.VALUES.TRM)
+    Y.FIX.VALUE = RETURN.VALUES.TRM<AA.Interest.Interest.IntFixedRate>
+    
+    writeData = arrId:'*':Y.FIX.VALUE
+    FileName = 'INTERSET.txt'
+    FilePath= 'D:\NMBT\Temenos\t24home\default\DD.IN'
+    OPENSEQ FilePath,FileName TO FileOutput THEN NULL
+    ELSE
+        CREATE FileOutput ELSE
+        END
+    END
+    WRITESEQ writeData APPEND TO FileOutput ELSE
+        CLOSESEQ FileOutput
+    END
+    
+    AA.Framework.GetArrangementConditions(arrId,"",'PAYOFFFEE','',RETURN.IDS.TRM,RETURN.VALUES.TRM,ERR.MSG.TRM)
+    RETURN.VALUES.TRM = RAISE(RETURN.VALUES.TRM)
+    Y.FIX.AMT = RETURN.VALUES.TRM<AA.Fees.Charge.FixedAmount>
+    writeData = arrId:'*':Y.FIX.AMT
+    FileName = 'CHARGE.txt'
+    FilePath= 'D:\NMBT\Temenos\t24home\default\DD.IN'
+    OPENSEQ FilePath,FileName TO FileOutput THEN NULL
+    ELSE
+        CREATE FileOutput ELSE
+        END
+    END
+    WRITESEQ writeData APPEND TO FileOutput ELSE
+        CLOSESEQ FileOutput
+    END
+    
+    AA.Framework.GetArrangementConditions(arrId,"",'COMMITMENT','',RETURN.IDS.TRM,RETURN.VALUES.TRM,ERR.MSG.TRM)
+    RETURN.VALUES.TRM = RAISE(RETURN.VALUES.TRM)
+    Y.TERM.AMT = RETURN.VALUES.TRM<AA.TermAmount.TermAmount.AmtAmount>
+    Y.Mat = RETURN.VALUES.TRM<AA.TermAmount.TermAmount.AmtMaturityDate>
+    Y.TERM = RETURN.VALUES.TRM<AA.TermAmount.TermAmount.AmtTerm>
+    writeData = arrId:'*':Y.TERM.AMT:'*':Y.Mat:'*':Y.TERM
+    FileName='AMOUNT.txt'
+    FilePath= 'D:\NMBT\Temenos\t24home\default\DD.IN'
+    OPENSEQ FilePath,FileName TO FileOutput THEN NULL
+    ELSE
+        CREATE FileOutput ELSE
+        END
+    END
+    WRITESEQ writeData APPEND TO FileOutput ELSE
+        CLOSESEQ FileOutput
+    END
+RETURN

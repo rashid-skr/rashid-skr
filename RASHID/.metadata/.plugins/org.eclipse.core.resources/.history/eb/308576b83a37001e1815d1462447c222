@@ -1,0 +1,52 @@
+SUBROUTINE JBL.VALID.PRIN.PELAN.RTN
+    $INSERT I_COMMON
+    $INSERT I_EQUATE
+    $INSERT I_AA.LOCAL.COMMON
+
+    $USING EB.SystemTables
+    $USING AA.Framework
+    $USING AA.Interest
+    $USING EB.Foundation
+    $USING EB.DataAccess
+    $USING EB.Interface
+    $USING AC.AccountOpening
+    GOSUB PROCESS
+RETURN
+**
+PROCESS:
+    ArrangementId = c_aalocArrActivityRec<AA.Framework.ArrangementActivity.ArrActArrangement>
+    PROP.CLASS.TRM = 'INTEREST'
+    AA.Framework.GetArrangementConditions(ArrangementId,PROP.CLASS.TRM,'PRINCIPALINT','',RETURN.IDS.TRM,RETURN.VALUES.TRM,ERR.MSG.TRM)
+    RETURN.VALUES.TRM = RAISE(RETURN.VALUES.TRM)
+    Y.PR.INT.RT = RETURN.VALUES.TRM<AA.Interest.Interest.IntFixedRate>
+* Y.PR.INT.RT = Y.PR.INT.RT + 2
+    
+    R.REC<AA.Framework.ArrangementActivity.ArrActArrangement> = AA.Framework.getC_aalocarrid()
+    R.REC<AA.Framework.ArrangementActivity.ArrActActivity> = 'LENDING-CHANGE-PRINCIPALINT'
+    R.REC<AA.Framework.ArrangementActivity.ArrActEffectiveDate> = c_aalocActivityEffDate
+    R.REC<AA.Framework.ArrangementActivity.ArrActProperty> = 'PRINCIPALINT'
+    R.REC<AA.Framework.ArrangementActivity.ArrActFieldName> = 'FIXED.RATE'
+    R.REC<AA.Framework.ArrangementActivity.ArrActFieldValue> = Y.PR.INT.RT + 2
+    
+    
+    EB.SystemTables.setRNew(AA.Interest.Interest.IntFixedRate,Y.PR.INT.RT)
+    
+    EB.Foundation.OfsBuildRecord('AA.ARRANGEMENT.ACTIVITY', 'I', 'PROCESS', 'AA.ARRANGEMENT.ACTIVITY,MIG', "" ,"0" ,"",R.REC,Y.OFS.RECORD)
+       
+    EB.Interface.OfsCallBulkManager(OFS.SOURCE, Y.OFS.RECORD,OFS.RESPONSE, TXN.COMMITTED)
+    writeData = ArrangementId:'*':Y.PR.INT.RT
+    FileName = 'INTER.txt'
+    FilePath= 'E:\NMBT\Temenos\t24home\default\DD.IN'
+    OPENSEQ FilePath,FileName TO FileOutput THEN NULL
+    ELSE
+        CREATE FileOutput ELSE
+        END
+    END
+    WRITESEQ writeData APPEND TO FileOutput ELSE
+        CLOSESEQ FileOutput
+    END
+    
+    
+RETURN
+
+

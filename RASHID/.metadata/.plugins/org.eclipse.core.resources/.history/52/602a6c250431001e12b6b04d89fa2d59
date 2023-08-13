@@ -1,0 +1,66 @@
+SUBROUTINE JBL.TEST.FT.RTN
+    $INSERT I_COMMON
+    $INSERT I_EQUATE
+    
+    $USING EB.DataAccess
+    $USING EB.SystemTables
+    $USING FT.Contract
+    $USING EB.Foundation
+    $USING EB.Interface
+    
+    
+    GOSUB INIT
+    GOSUB OPENFILES
+    GOSUB PROCESS
+RETURN
+
+****
+INIT:
+***
+    FN.FT='F.FUNDS.TRANSFER'
+    F.FT=''
+RETURN
+***
+OPENFILES:
+***
+    EB.DataAccess.Opf(FN.FT,F.FT)
+RETURN
+***
+PROCESS:
+    
+*******
+    Y.TRAN.TYPE = EB.SystemTables.getRNew(FT.Contract.FundsTransfer.TransactionType)
+    Y.DR.AC = EB.SystemTables.getRNew(FT.Contract.FundsTransfer.DebitAcctNo)
+    Y.DR.CURRENCY = EB.SystemTables.getRNew(FT.Contract.FundsTransfer.DebitCurrency)
+    Y.DR.AMT = EB.SystemTables.getRNew(FT.Contract.FundsTransfer.DebitAmount)
+    Y.DR.VALUE.DATE = EB.SystemTables.getRNew(FT.Contract.FundsTransfer.DebitValueDate)
+    Y.CR.AC = EB.SystemTables.getRNew(FT.Contract.FundsTransfer.CreditAcctNo)
+   
+    Y.VERSION ='FUNDS.TRANSFER,JBL.TRAIN.A.FT.RTN'
+    
+    R.REC<FT.Contract.FundsTransfer.TransactionType> = Y.TRAN.TYPE
+    R.REC<FT.Contract.FundsTransfer.DebitAcctNo> = Y.DR.AC
+    R.REC<FT.Contract.FundsTransfer.DebitCurrency> = Y.DR.CURRENCY
+    R.REC<FT.Contract.FundsTransfer.DebitValueDate> = Y.DR.VALUE.DATE
+    R.REC<FT.Contract.FundsTransfer.CreditAcctNo> = Y.CR.AC
+    
+    OFS.SOURCE = 'GCS'
+    EB.Foundation.OfsBuildRecord('FUNDS.TRANSFER','I','PROCESS',Y.VERSION,'',0,'',R.REC,YOfsRecord)
+    theResponse = ""
+    txnCommitted = ""
+    EB.Interface.OfsCallBulkManager(OFS.SOURCE, YOfsRecord, theResponse, txnCommitted)
+    SENSITIVITY = ''
+    writeData = YOfsRecord:'*':theResponse:'*':txnCommitted
+    FileName='AuthTest.txt'
+    FilePath= 'D:\NMBT\Temenos\t24home\default\DD.IN'
+    
+    OPENSEQ FilePath,FileName TO FileOutput THEN NULL
+    ELSE
+        CREATE FileOutput ELSE
+        END
+    END
+    WRITESEQ writeData APPEND TO FileOutput ELSE
+        CLOSESEQ FileOutput
+    END
+RETURN
+   

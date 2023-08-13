@@ -1,0 +1,19 @@
+SUBROUTINE FT.AUTO.RTN
+    $INSERT I_COMMON
+    $INSERT I_EQUATE
+
+    $USING FT.Contract
+  
+    $USING EB.SystemTables
+    
+  
+    
+    
+    Y.CR.ACCOUNT = 'USD16602':ID.COMPANY[6,4]:'0001'
+    EB.SystemTables.setRNew(FT.Contract.FundsTransfer.CreditAcctNo, Y.CR.ACCOUNT)
+
+RETURN
+
+END
+
+END

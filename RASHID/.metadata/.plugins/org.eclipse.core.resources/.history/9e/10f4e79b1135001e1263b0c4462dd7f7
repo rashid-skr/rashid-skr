@@ -1,0 +1,91 @@
+SUBROUTINE CR.TEST.PRIN.RTN(arrId,arrProp,arrCcy,arrRes,balanceAmount,perDat)
+*-----------------------------------------------------------------------------
+*
+*-----------------------------------------------------------------------------
+* Modification History :
+*-----------------------------------------------------------------------------
+
+*-----------------------------------------------------------------------------
+    $INSERT I_COMMON
+    $INSERT I_EQUATE
+    $INSERT I_AA.LOCAL.COMMON
+    $INSERT I_F.AA.ARRANGEMENT
+    $INSERT I_F.FT.COMMISSION.TYPE
+    $INSERT I_GTS.COMMON
+    
+    $USING EB.SystemTables
+    $USING EB.DataAccess
+    $USING AA.Framework
+    $USING AA.TermAmount
+    $USING AC.AccountOpening
+    $USING EB.TransactionControl
+    $USING AC.CashFlow
+    $USING ST.ChargeConfig
+    $USING AA.PaymentSchedule
+    $USING AA.ActivityRestriction
+    $USING ST.CurrencyConfig
+    $USING AC.BalanceUpdates
+    $USING AA.Account
+    $USING EB.LocalReferences
+    
+*****************************************************
+    IF EB.SystemTables.getVFunction() EQ 'I' THEN RETURN
+    IF EB.SystemTables.getVFunction() EQ 'V' THEN RETURN
+    IF EB.SystemTables.getVFunction() EQ 'A' THEN RETURN
+    IF (OFS$OPERATION EQ 'VALIDATE' OR OFS$OPERATION EQ 'PROCESS') AND c_aalocCurrActivity EQ 'LENDING-ISSUEBILL-SCHEDULE*DISBURSEMENT.%' THEN RETURN
+    
+    GOSUB INIT
+    GOSUB OPENFILES
+
+    IF c_aalocCurrActivity EQ 'ACCOUNTS-MAKEDUE-SCHEDULE' OR c_aalocCurrActivity EQ 'ACCOUNTS-CAPITALISE-SCHEDULE' OR c_aalocCurrActivity EQ 'LENDING-MAKEDUE-SCHEDULE' THEN
+        GOSUB PROCESS
+    END
+RETURN
+
+*****
+INIT:
+*****
+RETURN
+
+**********
+OPENFILES:
+**********
+RETURN
+
+********
+PROCESS:
+********
+*balanceAmount = '100':@VM:'200'
+*perDat = '20210201':@VM:'20210102'
+   
+    
+* writeData = arrId:'*':balanceAmount :'*':c_aalocCurrActivity:'*':arrProp:'*':arrCcy:'*':balanceAmount:'*':perDat
+*PROP.CLASS.TRM = 'INTEREST'
+    Y.PRO.NAME = 'ACCOUNT':@VM:'PAYOFFFEE':@VM:'PRINCIPALINT':@VM:'COMMITMENT'
+    Y.COUNT = DCOUNT(Y.PRO.NAME, @VM)
+
+
+    AA.Framework.GetArrangementConditions(arrId,"",'PRINCIPALINT','',RETURN.IDS.TRM,RETURN.VALUES.TRM,ERR.MSG.TRM)
+    PROP.CLASS.TRMT= 'CHARGE'
+    AA.Framework.GetArrangementConditions(arrId,"",'PAYOFFFEE','',RETURN.IDS.TRM,RETURN.VALUES.TRM,ERR.MSG.TRM)
+*PROP.CLASS.TRMT= 'COMMITMENT'
+        
+    AA.Framework.GetArrangementConditions(arrId,"",'COMMITMENT','',RETURN.IDS.TRM,RETURN.VALUES.TRM,ERR.MSG.TRM)
+* PROP.CLASS.TRMT= 'ACCOUNT'
+
+    AA.Framework.GetArrangementConditions(arrId,"",'ACCOUNT','',RETURN.IDS.TRM,RETURN.VALUES.TRM,ERR.MSG.TRM)
+    writeData = arrId:'*':RETURN.VALUES.TRM
+    FileName = Y.PRO.NAME<1,1>:'.txt'
+    FilePath = 'D:\NMBT\Temenos\t24home\default\DD.IN'
+    OPENSEQ FilePath,FileName TO FileOutput THEN NULL
+    ELSE
+        CREATE FileOutput ELSE
+        END
+    END
+    WRITESEQ writeData APPEND TO FileOutput ELSE
+        CLOSESEQ FileOutput
+    END
+RETURN
+
+ 
+

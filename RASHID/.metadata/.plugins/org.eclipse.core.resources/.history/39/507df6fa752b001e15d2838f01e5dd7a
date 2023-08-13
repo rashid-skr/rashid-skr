@@ -1,0 +1,47 @@
+SUBROUTINE JBL.TRAINING.PRE.RTN
+*-----------------------------------------------------------------------------
+*
+*-----------------------------------------------------------------------------
+* Modification History :
+*-----------------------------------------------------------------------------
+* Development by: Abdur Rashid.
+* Designation : Software Engineer
+* Company : Nazihar IT Solution Limited
+* date: 20230726
+* Functionality :This Routine us validate the customer Age.If customer Age greater then 30
+* it will create or display an error.
+* This rtn is added as pre_routine in personal loan
+* Activity :Lending-new Arrangement
+* property : ACCOUNT
+* Action :MAINTAIN
+
+*-----------------------------------------------------------------------------
+    $INSERT I_COMMON
+    $INSERT I_EQUATE
+    $INSERT I_AA.LOCAL.COMMON
+***
+    $USING EB.SystemTables
+    $USING AA.Framework
+    $USING EB.DataAccess
+    $USING ST.Customer
+****
+    GOSUB INIT
+    GOSUB OPF
+    GOSUB PROCESS
+RETURN
+****
+INIT:
+    FN.CUS='F.CUSTOMER'
+    F.CUS=''
+    
+RETURN
+OPF:
+    EB.DataAccess.Opf(FN.CUS,F.CUS)
+RETURN
+***
+PROCESS:
+    Y.CUS.ID= c_aalocArrActivityRec<AA.Framework.ArrangementActivity.ArrActCustomer>
+    EB.DataAccess.FRead(FN.CUS,Y.CUS.ID,R.CUS,F.CUS,ERR.CUS)
+    Y.CUS.DOB=R.CUS<ST.Customer.Customer.EbCusDateOfBirth>
+    Y.DATE=EB.SystemTables.getToday()
+RETURN

@@ -1,0 +1,33 @@
+SUBROUTINE JBL.VALID.PRIN.PELAN.RTN
+    $INSERT I_COMMON
+    $INSERT I_EQUATE
+    $INSERT I_AA.LOCAL.COMMON
+
+    $USING EB.SystemTables
+    $USING AA.Framework
+    $USING AA.Interest
+    $USING EB.Foundation
+    $USING EB.DataAccess
+    $USING EB.Interface
+    $USING AC.AccountOpening
+    GOSUB PROCESS
+RETURN
+**
+PROCESS:
+    ArrangementId = c_aalocArrActivityRec<AA.Framework.ArrangementActivity.ArrActArrangement>
+    PROP.CLASS.TRM = 'INTEREST'
+    OFS.SOURCE = 'GCS'
+    AA.Framework.GetArrangementConditions(ArrangementId,PROP.CLASS.TRM,'PENALTYINT','',RETURN.IDS.TRM,RETURN.VALUES.TRM,ERR.MSG.TRM)
+    RETURN.VALUES.TRM = RAISE(RETURN.VALUES.TRM)
+    Y.PR.INT.RT = EB.SystemTables.getRNew(AA.Interest.Interest.IntFixedRate)
+* FIXED.RATE = Y.PR.INT.RT +2
+        
+    R.REC<AA.Framework.ArrangementActivity.ArrActArrangement> = AA.Framework.getC_aalocarrid()
+    R.REC<AA.Framework.ArrangementActivity.ArrActActivity> = 'LENDING-CHANGE-PRINCIPALINT'
+    R.REC<AA.Framework.ArrangementActivity.ArrActEffectiveDate> = c_aalocActivityEffDate
+    R.REC<AA.Framework.ArrangementActivity.ArrActProperty> = 'PRINCIPALINT'
+    R.REC<AA.Framework.ArrangementActivity.ArrActFieldName> = 'FIXED.RATE'
+    R.REC<AA.Framework.ArrangementActivity.ArrActFieldValue> = Y.PR.INT.RT + 2
+END
+RETURN
+

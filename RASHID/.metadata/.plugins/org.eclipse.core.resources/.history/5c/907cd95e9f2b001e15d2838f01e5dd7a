@@ -1,0 +1,56 @@
+SUBROUTINE JBL.TRAIN.A.FT.RTN
+*-----------------------------------------------------------------------------
+*
+*-----------------------------------------------------------------------------
+* Modification History :
+*-----------------------------------------------------------------------------
+
+*-----------------------------------------------------------------------------
+    $INSERT I_COMMON
+    $INSERT I_EQUATE
+    
+    $USING EB.DataAccess
+    $USING EB.SystemTables
+    $USING FT.Contract
+    
+    GOSUB INIT
+    GOSUB OPF
+    GOSUB PROCESS
+RETURN
+
+****
+INIT:
+***
+    FN.FT='F.FUNDS.TRANSFER'
+    F.FT=''
+RETURN
+***
+OPENFILES:
+***
+    EB.DataAccess.Opf(FN.FT,F.FT)
+RETURN
+***
+PROCESS:
+    Y.TRM.TYPE=EB.SystemTables.getRNew(FT.Contract.FundsTransfer.TransactionType)
+    Y.DR.AC=EB.SystemTables.getRNew(FT.Contract.FundsTransfer.DebitAcctNo)
+    Y.DR.AC.CURRENCY=EB.SystemTables.getRNew(FT.Contract.FundsTransfer.DebitCurrency)
+    Y.DR.AMT =EB.SystemTables.getRNew(FT.Contract.FundsTransfer.DebitAmount)
+    Y.DR.VALUE.DATE=EB.SystemTables.getRNew(FT.Contract.FundsTransfer.DebitValueDate)
+    Y.CR.AC=EB.SystemTables.getRNew(FT.Contract.FundsTransfer.CreditAcctNo)
+    Y.TXN.AMT=(Y.DR.AMT*15)/100
+    Y.VERSION='FUNDS.TRANSFER,TTRN.AUTH'
+    
+    
+    
+    R.REC<FT.Contract.FundsTransfer.TransactionType)=Y.TRAN.TYPE
+    R.REC(FT.Contract.FundsTransfer.DebitAcctNo)=Y.DR.AC
+    R.REC(FT.Contract.FundsTransfer.DebitCurrency)=Y.DR.AC.CURRENCY
+    R.REC(FT.Contract.FundsTransfer.DebitAmount)=Y.TRAN.TYPE
+    R.REC(FT.Contract.FundsTransfer.DebitValueDate)=Y.DR.AMT
+    R.REC(FT.Contract.FundsTransfer.CreditAcctNo)=Y.DR.AC
+ 
+  
+    
+
+RETURN
+END

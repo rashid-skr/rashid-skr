@@ -1,0 +1,18 @@
+SUBROUTINE ENQ.CAT.CONV.RTN
+    $INSERT  I_COMMON
+    $INSERT  I_EQUATE
+    $USING EB.Reports
+    $USING ST.Config
+    $USING EB.DataAccess
+    Y.CATEG = EB.Reports.getOData()
+    FN.APP='F.CATEGORY'; F.APP=''
+    EB.DataAccess.Opf(FN.APP,F.APP)
+    EB.DataAccess.FRead(FN.APP,Y.CAT.ID,REC.CAT,F.APP,ERR)
+    F.CAT.DES= REC.CAT<ST.Config.Category.EbCatDescription>
+    EB.Reports.setOData(Y.CAT.DES )
+    
+    
+    
+    
+RETURN
+END

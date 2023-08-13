@@ -1,0 +1,32 @@
+SUBROUTINE JBL.TEST.VALID.RTN
+    $INSERT I_COMMON
+    $INSERT I_EQUATE
+    $INSERT I_AA.LOCAL.COMMON
+*
+    $USING EB.SystemTables
+    $USING AA.Framework
+    $USING AA.Interest
+*
+    GOSUB PROCESS
+RETURN
+*-------
+PROCESS:
+*-------
+    ArrangementId = c_aalocArrActivityRec<AA.Framework.ArrangementActivity.ArrActArrangement>
+    PROP.CLASS.TRM = 'INTEREST'
+    AA.Framework.GetArrangementConditions(ArrangementId,PROP.CLASS.TRM,'PRINCIPALINT','',RETURN.IDS.TRM,RETURN.VALUES.TRM,ERR.MSG.TRM)
+    RETURN.VALUES.TRM = RAISE(RETURN.VALUES.TRM)
+    Y.PR.INT.RT = RETURN.VALUES.TRM<AA.Interest.Interest.IntFixedRate>
+    EB.SystemTables.setRNew(AA.Interest.Interest.IntFixedRate,Y.PR.INT.RT)
+    writeData = ArrangementId :'*':Y.PR.INT.RT:'*':RETURN.VALUES.TRM
+    FileName = 'Test.CR.txt'
+    FilePath = 'D:\NMBT\Temenos\t24home\default\DD.IN'cl
+    OPENSEQ FilePath,FileName TO FileOutput THEN NULL
+    ELSE
+        CREATE FileOutput ELSE
+        END
+    END
+    WRITESEQ writeData APPEND TO FileOutput ELSE
+        CLOSESEQ FileOutput
+    END
+RETURN

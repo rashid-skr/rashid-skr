@@ -1,0 +1,304 @@
+SUBROUTINE CM.IPDC.E.NOF.PL.STMT(Y.OUTPUT)
+* @ValidationCode : MjoxMjY1MzUzMDc2OkNwMTI1MjoxNjMxNjk0ODUwMTQxOnNhcXVpYi5ob3NzYWluOi0xOi0xOjA6MDpmYWxzZTpOL0E6UjE4X1NQMTEuMDotMTotMQ==
+* @ValidationInfo : Timestamp         : 15 Sep 2021 14:34:10
+* @ValidationInfo : Encoding          : Cp1252
+* @ValidationInfo : User Name         : saquib.hossain
+* @ValidationInfo : Nb tests success  : N/A
+* @ValidationInfo : Nb tests failure  : N/A
+* @ValidationInfo : Rating            : N/A
+* @ValidationInfo : Coverage          : N/A
+* @ValidationInfo : Strict flag       : N/A
+* @ValidationInfo : Bypass GateKeeper : false
+* @ValidationInfo : Compiler Version  : R18_SP11.0
+* @SUBROUTINE CM.IPDC.E.NOF.PL.STMT(Y.OUTPUT)
+* SUBROUTINE CM.IPDC.E.NOF.PL.STMT(Y.OUTPUT)
+*-----------------------------------------------------------------------------
+*
+*-----------------------------------------------------------------------------
+* Modification History :
+* C1 - Saquib - Adding Secondary Transaction Reference
+* C2 - 2021-04-06 - Saquib - Adding condition: IF TO.DATE is GE TODAY then get today's entry
+* C3 - 2021-09-09 - Omar   - Add option for removing closing entry and add inputter and authoriser
+* C4 - 2021-09-15 - Saquib - Picking Inputter from Secondary Reference Application
+*-----------------------------------------------------------------------------
+    $INSERT I_COMMON
+    $INSERT I_EQUATE
+    $INSERT I_ENQUIRY.COMMON
+    $INSERT I_F.CATEG.ENTRY
+    $INSERT I_F.FUNDS.TRANSFER
+;* C4(S)
+*  $INSERT I_F.BDMB.H.MUL.MCD
+;* C4(E)
+    
+    $USING EB.DataAccess
+    $USING EB.Updates
+*-----------------------------------------------------------------------------
+    SAVE.COMP = ID.COMPANY
+    GOSUB INIT
+    
+    CALL LOAD.COMPANY(SAVE.COMP)
+    
+RETURN
+*----
+INIT:
+*-----
+    
+    Y.DELIM = '*'
+    
+    LOCATE 'CATEGORY' IN ENQ.SELECTION<2,1> SETTING POS THEN
+        CATEG.ID = ENQ.SELECTION<4,POS>
+        IF CATEG.ID LT 50000 OR CATEG.ID GE 70000 THEN
+            ENQ.ERROR = 'Categor must be in range 50000-69999'
+            RETURN
+            
+        END
+        FN.CAT = 'F.CATEGORY'
+        F.CAT = ''
+        EB.DataAccess.Opf(FN.CAT,F.CAT)
+        EB.DataAccess.FRead(FN.CAT,CATEG.ID,R.CAT,F.CAT,CAT.ERR)
+        IF NOT(R.CAT) THEN
+            ENQ.ERROR = 'Category NOT found'
+            RETURN
+        END
+    END
+    
+    LOCATE 'FROM.DATE' IN ENQ.SELECTION<2,1> SETTING POS THEN
+        FROM.DATE = ENQ.SELECTION<4,POS>
+        Y.DATE = FROM.DATE
+        CALL CM.IPDC.S.CHECK.DATE(Y.DATE,Y.RETURN)
+        IF Y.RETURN NE 0 THEN
+            ENQ.ERROR = 'Invalid date :':Y.DATE
+            RETURN
+        END
+    END
+    
+    LOCATE 'TO.DATE' IN ENQ.SELECTION<2,1> SETTING POS THEN
+        TO.DATE = ENQ.SELECTION<4,POS>
+        Y.DATE = TO.DATE
+        CALL CM.IPDC.S.CHECK.DATE(Y.DATE,Y.RETURN)
+        IF Y.RETURN NE 0 THEN
+            ENQ.ERROR = 'Invalid date :':Y.DATE
+            RETURN
+        END
+    END ELSE
+        TO.DATE = TODAY
+    END
+    
+;*C3(s)
+    EXCL.CLS.ENTRY = ''
+    LOCATE 'EXCL.CLS.ENTRY' IN ENQ.SELECTION<2,1> SETTING POS THEN
+        EXCL.CLS.ENTRY = ENQ.SELECTION<4,POS>
+    END
+    
+;*C3(E)
+    IF CATEG.ID MATCHES '51050' : @VM : '51080' THEN
+        Y.DAYS = 'C'
+        CALL CDD('',FROM.DATE,TO.DATE,Y.DAYS)
+        IF Y.DAYS GT 3 THEN
+            ENQ.ERROR = 'Duration must be <= 3 for CATEGORY ':CATEG.ID
+            RETURN
+        END
+    END
+        
+    LOCATE 'COMPANY' IN ENQ.SELECTION<2,1> SETTING POS THEN
+        Y.COMP.LIST =  ENQ.SELECTION<4,POS>
+        IF UPCASE(Y.COMP.LIST) EQ 'ALL' THEN
+            Y.CONSOLIDATED = 'Y'
+            GOSUB GET.ALL.COMP
+        END ELSE
+            FN.COMP = 'F.COMPANY'
+            F.COMP = ''
+            EB.DataAccess.Opf(FN.COMP,F.COMP)
+            EB.DataAccess.FRead(FN.COMP,Y.COMP.LIST,R.COMP,F.COMP,COMP.ERR)
+            IF COMP.ERR THEN
+                ENQ.ERROR = 'Invalid Branch'
+                RETURN
+            END
+        END
+    END ELSE
+        Y.COMP.LIST = ID.COMPANY
+    END
+    
+    FN.CAT.ENT = "F.CATEG.ENTRY"
+    F.CAT.ENT = ''
+    EB.DataAccess.Opf(FN.CAT.ENT,F.CAT.ENT)
+        
+    FN.FT = 'F.FUNDS.TRANSFER'
+    F.FT = ''
+    EB.DataAccess.Opf(FN.FT,F.FT)
+    
+    FN.FT.HIS = 'F.FUNDS.TRANSFER$HIS'
+    F.FT.HIS = ''
+    EB.DataAccess.Opf(FN.FT.HIS,F.FT.HIS)
+    
+;* C4(S)
+    FN.MUL.MCD = 'F.BDMB.H.MUL.MCD'
+    F.MUL.MCD = ''
+    EB.DataAccess.Opf(FN.MUL.MCD,F.MUL.MCD)
+;* C4(E)
+    
+    APPLICATION.NAME = 'FUNDS.TRANSFER'
+    LOCAL.FIELDS = 'LT.COST.CENTER' : @VM : 'LT.DR.NARRATION' : @VM : 'LT.CR.NARRATION' : @VM : 'LT.UPLOAD.ID'
+;* C4(S)
+    LOCAL.FIELDS := @VM : 'LT.BU.INPUTTER'
+;* C4(E)
+    EB.Updates.MultiGetLocRef(APPLICATION.NAME, LOCAL.FIELDS, FLD.POS)
+    Y.COST.CNTR.POS = FLD.POS<1,1>
+    Y.DR.NARR.POS = FLD.POS<1,2>
+    Y.CR.NARR.POS = FLD.POS<1,3>
+    Y.LT.UPLOAD.ID.POS = FLD.POS<1,4>
+;* C4(S)
+    Y.LT.BU.INPUTTER.POS = FLD.POS<1,5>
+;* C4(E)
+    
+    Y.CUR.BAL = 0
+    GOSUB PROCESS
+
+RETURN
+
+*------------
+GET.ALL.COMP:
+*------------
+
+    FN.COMP = 'F.COMPANY'
+    F.COMP = ''
+    EB.DataAccess.Opf(FN.COMP,F.COMP)
+    SEL.COMP = 'SELECT ':FN.COMP
+    EB.DataAccess.Readlist(SEL.COMP,Y.COMP.LIST,'',NO.OF.COMP,ERR)
+
+RETURN
+
+*-------
+PROCESS:
+*-------
+
+    LOOP
+        REMOVE Y.COMP.ID FROM Y.COMP.LIST SETTING COMP.POS
+    WHILE Y.COMP.ID : COMP.POS
+        CALL LOAD.COMPANY(Y.COMP.ID)
+        
+        Y.CAT.ENTRY.LIST = ''
+        CALL GET.CATEG.MONTH.ENTRIES(FROM.DATE, TO.DATE, CATEG.ID, Y.CAT.ENTRY.LIST)
+        
+;* C2(S)
+        IF TO.DATE GE TODAY THEN
+;* C2(E)
+            Y.CATEG.ENTRY.KEY = 'CATEG.TODAY'
+            CALL AC.GET.CATEG.ENT.TODAY.LWORK("","",CATEG.ID,Y.CATEG.ENTRY.KEY)
+            IF Y.CATEG.ENTRY.KEY <> "" THEN
+                IF Y.CAT.ENTRY.LIST THEN
+                    Y.CAT.ENTRY.LIST := @FM:Y.CATEG.ENTRY.KEY
+                END ELSE
+                    Y.CAT.ENTRY.LIST = Y.CATEG.ENTRY.KEY
+                END
+            END
+;* C2(S)
+        END
+;* C2(E)
+        
+        IF Y.CAT.ENTRY.LIST NE '' THEN
+            LOOP
+                REMOVE Y.CATEG.ENTRY.ID FROM Y.CAT.ENTRY.LIST SETTING CAT.POS
+            WHILE Y.CATEG.ENTRY.ID : CAT.POS
+                EB.DataAccess.FRead(FN.CAT.ENT,Y.CATEG.ENTRY.ID,CATEG.REC,F.CAT.ENT,CAT.ERR)
+                Y.BOOK.DATE = CATEG.REC<AC.CAT.BOOKING.DATE>
+                Y.VALUE.DATE = CATEG.REC<AC.CAT.VALUE.DATE>
+                Y.TXN.REF = CATEG.REC<AC.CAT.TRANS.REFERENCE>
+                Y.AMOUNT = CATEG.REC<AC.CAT.AMOUNT.LCY>
+;*C3(s)
+                Y.TXN.CODE = CATEG.REC<AC.CAT.TRANSACTION.CODE>
+                Y.INPUTTER = CATEG.REC<AC.CAT.INPUTTER>
+                Y.AUTHORISER = CATEG.REC<AC.CAT.AUTHORISER>
+;*C3(e)
+                Y.CUR.BAL += Y.AMOUNT
+                IF Y.TXN.REF[1,2] EQ 'FT' THEN
+                    Y.FT.ID = FIELD(Y.TXN.REF,'\',1)
+                    GOSUB READ.FT
+                END
+                IF Y.AMOUNT GT 0 THEN
+                    Y.DR.AMT = 0
+                    Y.CR.AMT = Y.AMOUNT
+                    Y.NARR = Y.CR.NARR
+                END ELSE
+                    Y.DR.AMT = ABS(Y.AMOUNT)
+                    Y.CR.AMT = 0
+                    Y.NARR = Y.DR.NARR
+                END
+                
+;*IF Y.CONSOLIDATED = 'Y' THEN
+                Y.FOURTH.COL = Y.COMP.ID[6,4] :Y.DELIM: Y.COST.CNTR
+*                END ELSE
+*                    Y.FOURTH.COL = Y.COST.CNTR
+*                END
+               
+;*C3(S)
+                Y.EXLCUDE = '0'
+                IF EXCL.CLS.ENTRY[1,1] MATCHES 'Y':@VM:'y' AND Y.TXN.CODE MATCHES '198':@VM:'199' THEN  ;* ommit year end closing entry
+                    Y.EXLCUDE = '1'
+                END
+                IF Y.EXLCUDE = '0' THEN
+;*C3(e)
+                    Y.OUTPUT<-1> = Y.BOOK.DATE
+                    Y.OUTPUT := Y.DELIM: Y.VALUE.DATE
+                    Y.OUTPUT := Y.DELIM: Y.TXN.REF
+                    Y.OUTPUT := Y.DELIM: Y.FOURTH.COL
+                    Y.OUTPUT := Y.DELIM: Y.NARR
+                    Y.OUTPUT := Y.DELIM: Y.DR.AMT
+                    Y.OUTPUT := Y.DELIM: Y.CR.AMT
+                    Y.OUTPUT := Y.DELIM: Y.CUR.BAL
+                    Y.OUTPUT := Y.DELIM: Y.SEC.REF
+;*C3(s)
+                    Y.OUTPUT := Y.DELIM: Y.INPUTTER
+                    Y.OUTPUT := Y.DELIM: Y.AUTHORISER
+                END
+;*C3(e)
+            REPEAT
+        END
+
+    REPEAT
+
+RETURN
+
+*-------
+READ.FT:
+*-------
+
+    IF Y.BOOK.DATE EQ TODAY THEN
+        EB.DataAccess.FRead(FN.FT,Y.FT.ID,R.FT,F.FT,FT.ERR)
+    END ELSE
+        EB.DataAccess.ReadHistoryRec(F.FT.HIS, Y.FT.ID, R.FT, FT.ERR)
+    END
+    Y.COST.CNTR = R.FT<FT.LOCAL.REF,Y.COST.CNTR.POS>
+    Y.DR.NARR = R.FT<FT.LOCAL.REF,Y.DR.NARR.POS>
+    IF Y.DR.NARR EQ '' THEN
+        Y.DR.NARR = R.FT<FT.DEBIT.THEIR.REF>
+    END
+    Y.CR.NARR = R.FT<FT.LOCAL.REF,Y.CR.NARR.POS>
+    IF Y.CR.NARR EQ '' THEN
+        Y.CR.NARR = R.FT<FT.CREDIT.THEIR.REF>
+    END
+;* C1(S)
+    Y.SEC.REF = ''
+    
+    Y.SEC.REF = R.FT<FT.IN.SWIFT.MSG>
+    
+    IF Y.SEC.REF = '' THEN
+        Y.SEC.REF = R.FT<FT.LOCAL.REF, Y.LT.UPLOAD.ID.POS>
+    END
+;* C1(E)
+
+;* C4(S)
+    BEGIN CASE
+        CASE Y.SEC.REF[1,5] EQ 'BKACM'
+            EB.DataAccess.FRead(FN.MUL.MCD, Y.SEC.REF, R.MUL.MCD, F.MUL.MCD, ERR.MUL.MCD)
+            Y.INPUTTER = FIELD(R.MUL.MCD<MDC.MCD.INPUTTER>, '_', 2)
+*            Y.TXN.REF := '\':Y.EXTR.REF
+        CASE Y.SEC.REF[1,4] EQ 'UPLD'
+            Y.INPUTTER = R.FT<FT.LOCAL.REF, Y.LT.BU.INPUTTER.POS>
+    END CASE
+;* C4(4)
+
+RETURN
+
+END
+ 

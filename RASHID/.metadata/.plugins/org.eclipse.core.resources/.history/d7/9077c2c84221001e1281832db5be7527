@@ -1,0 +1,19 @@
+SUBROUTINE CUS.CHECK.RCD.RTN
+    $INSERT I_COMMON
+    $INSERT I_EQUATE
+    
+    $USING EB.SystemTables
+    $USING ST.Customer
+
+
+
+    THIS.OPERATOR.OK =''
+    IF NOT (EB.SystemTables.getRNew(ST.Customer.Customer.EbCusInputter)) THEN RETURN
+    IF NOT (EB.SystemTables.getRNew(ST.Customer.Customer.EbCusRecordStatus)) THEN RETURN
+    Y.INPUTTER =EB.SystemTables.getRNew(ST.Customer.Customer.EbCusInputter)
+    IF FIELD (INPUTTER,'_',2) EQ B.SystemTables.getOperator() THEN
+        THIS.OPERATOR.OK = 1
+
+
+        RETURN
+    END

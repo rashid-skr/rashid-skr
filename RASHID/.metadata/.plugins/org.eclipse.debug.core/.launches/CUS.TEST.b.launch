@@ -1,0 +1,7 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<launchConfiguration type="com.temenos.tafj.launcher.BASICLauncherDelegate">
+<stringAttribute key="BASIC_PROGRAM" value="/TAFJ-TRAINING/TEST.CODE/CUS.TEST.b"/>
+<stringAttribute key="BASIC_PROGRAM_ARGUMENTS" value=""/>
+<stringAttribute key="BASIC_PROJECT" value="TAFJ-TRAINING"/>
+<stringAttribute key="UNIQUE_TARGET" value="/TAFJ-TRAINING/TEST.CODE/CUS.TEST.b"/>
+</launchConfiguration>

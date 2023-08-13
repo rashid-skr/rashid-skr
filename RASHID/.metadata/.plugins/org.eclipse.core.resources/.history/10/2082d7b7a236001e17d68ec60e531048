@@ -1,0 +1,27 @@
+SUBROUTINE JBL.VALID.PRIN.PELAN.RTN
+    $INSERT I_COMMON
+    $INSERT I_EQUATE
+    $INSERT I_AA.LOCAL.COMMON
+
+    $USING EB.SystemTables
+    $USING AA.Framework
+    $USING AA.Interest
+    $USING EB.Foundation
+    $USING EB.DataAccess
+    $USING EB.Interface
+    $USING AC.AccountOpening
+    GOSUB PROCESS
+RETURN
+**
+PROCESS:
+    ArrangementId = c_aalocArrActivityRec<AA.Framework.ArrangementActivity.ArrActArrangement>
+    PROP.CLASS.TRM = 'INTEREST'
+    AA.Framework.GetArrangementConditions(ArrangementId,PROP.CLASS.TRM,'PRINCIPALINT','',RETURN.IDS.TRM,RETURN.VALUES.TRM,ERR.MSG.TRM)
+    RETURN.VALUES.TRM = RAISE(RETURN.VALUES.TRM)
+    Y.PR.INT.RT = RETURN.VALUES.TRM<AA.Interest.Interest.IntFixedRate>
+    EB.SystemTables.setRNew(AA.Interest.Interest.IntFixedRate,Y.PR.INT.RT)
+    Y.PR.INT.RT = Y.PR.INT.RT + 2
+   
+RETURN
+END
+

@@ -1,0 +1,24 @@
+SUBROUTINE JBL.TRAINN.REC.RTN
+    $INSERT I_COMMON
+    $INSERT I_EQUATE
+    $INSERT I_AA.LOCAL.COMMON
+
+    $USING AA.Framework
+    $USING ST.Customer
+    $USING EB.DataAccess
+    $USING EB.SystemTables
+    $USING AA.Account
+    
+    DEBUG
+    FN.CUSTOMER ='F.CUSTOMER'
+    F.CUSTOMER =''
+      
+    EB.DataAccess.Opf(FN.CUSTOMER,F.CUSTOMER)
+    
+    Y.CUS.ID = c_aalocArrActivityRec<AA.Framework.ArrangementActivity.ArrActCustomer>
+    EB.DataAccess.FRead(FN.CUSTOMER, Y.CUS.ID, R.CUS, F.CUSTOMER, ERR.CUS)
+    Y.CUS.SHT.NM=R.CUS<ST.Customer.Customer.EbCusShortName>
+    IF EB.SystemTables.getRNew(AA.Account.Account.AcShortTitle) EQ '' THEN
+        EB.SystemTables.setRNew(AA.Account.Account.AcShortTitle, Y.CUS.SHT.NM)
+    END
+RETURN

@@ -1,0 +1,11 @@
+SUBROUTINE ACC.BEFORE.AUTH.RTN
+    $INSERT I_COMMON
+    $INSERT I_EQUATE
+
+    $USING EB.SystemTables
+    $USING AC.AccountOpening
+    EB.SystemTables.setRNew(AC.AccountOpening.Account.PostingRestrict,"2")
+   
+   
+RETURN
+END
