@@ -1,4 +1,4 @@
-<h1>Hi, I'm Rashid! <br/><a href=https://github.com/rashid-skr>Programmer</a>, <https://www.linkedin.com/in/abdur-rashid-395114135//in/Abdur Rashid/"> Java Developer </a>,
+<h1>Hi, I'm Rashid! <br/><a href=https://github.com/rashid-skr>Programmer</a>, <https://www.linkedin.com/in/abdur-rashid-395114135//in/Abdur Rashid/"> Software Engineer at Nazihar Tech. ltd. </a>,
 
 <h2>👨‍💻 Software Development Projects:</h2>
 <br>Java Programming Practice</br>
